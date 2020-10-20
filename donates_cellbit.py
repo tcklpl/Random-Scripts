@@ -1,4 +1,4 @@
-import json, urllib.request, sys, os
+import json, urllib.request, sys, os.path
 
 result_total_count = False
 result_total_cidade = False
@@ -8,10 +8,11 @@ no_cache = False
 def print_help_and_exit():
     print ("Donates do cellbit, script by tcklpl.")
     print ("Opções:")
-    print ("    -t  Total de donates geral.")
-    print ("    -c  Total por cidade, uso: -c <CIDADE> <ESTADO>. Se a cidade possuir mais de 1 palavra usar aspas: \"São Paulo\", estados são com 2 letras: SP.")
-    print ("    -ln Lista os nomes. É necessário usar -c.")
-    print ("    -nc Pega os dados da net e não do cache.")
+    print ("    -t  --total      Total de donates geral.")
+    print ("    -c  --city       Total por cidade, uso: -c <CIDADE> <ESTADO>.")
+    print ("                     Se a cidade possuir mais de 1 palavra usar aspas: \"São Paulo\", estados são com 2 letras: SP.")
+    print ("    -ln --list-names Lista os nomes. É necessário usar -c.")
+    print ("    -nc --no-cache   Pega os dados da net e não do cache.")
     exit()
 
 if len(sys.argv) == 1:
@@ -39,6 +40,10 @@ else:
             print_help_and_exit()
         i += 1
 
+if result_cidade_list_nomes and not result_total_cidade:
+    print("[!!] Para listar os nomes por favor selecionar uma cidade.")
+    exit()
+
 output = None
 if not no_cache:
     if os.path.exists(".cellbit_donations_cache"):
@@ -64,16 +69,14 @@ if result_total_cidade:
         if donate['data']['city'] == cidade and donate['data']['state'] == estado:
             contador_total_cidade += 1
             nomes.append(donate['data']['name'])
-        if not cidade:
-            nomes.append(donate['data']['name'])
 
-    nomes_srt = sorted(nomes, key=str.casefold)
     if result_cidade_list_nomes:
+        nomes_srt = sorted(nomes, key=str.casefold)
         for nome in nomes_srt:
             print ("[  ] Doador: " + nome)
 
     print ("[OK] Atualmente existem " + str(contador_total_cidade) + " de donates da cidade " + cidade + " " + estado)
 
-if not no_cache:
+if no_cache:
     with open(".cellbit_donations_cache", "w") as f:
         json.dump(output, f)
